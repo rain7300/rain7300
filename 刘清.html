@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>下班倒计时</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#FF6B6B',
+                        secondary: '#4ECDC4',
+                        dark: '#222222',
+                        light: '#F7FFF7',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .text-shadow {
+                text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            }
+            .glass-effect {
+                background: rgba(255, 255, 255, 0.1);
+                backdrop-filter: blur(10px);
+                -webkit-backdrop-filter: blur(10px);
+            }
+            .pulse-animation {
+                animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+            }
+            @keyframes pulse {
+                0%, 100% {
+                    opacity: 1;
+                }
+                50% {
+                    opacity: 0.7;
+                }
+            }
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-dark to-gray-800 min-h-screen flex items-center justify-center p-4">
+    <div class="relative w-full max-w-md">
+        <!-- 装饰元素 -->
+        <div class="absolute -top-10 -right-10 w-40 h-40 bg-primary/20 rounded-full blur-3xl"></div>
+        <div class="absolute -bottom-10 -left-10 w-40 h-40 bg-secondary/20 rounded-full blur-3xl"></div>
+        
+        <div class="glass-effect rounded-2xl p-8 border border-white/10 shadow-xl relative z-10">
+            <div class="text-center mb-8">
+                <h1 class="text-[clamp(2rem,5vw,3rem)] font-bold text-light mb-2 text-shadow">
+                    <i class="fa-solid fa-clock text-primary mr-2"></i>下班倒计时
+                </h1>
+                <p class="text-light/70 text-lg">还剩多久可以逃离办公室？</p>
+            </div>
+            
+            <div class="flex flex-col items-center">
+                <!-- 倒计时显示 -->
+                <div class="flex gap-4 mb-8">
+                    <div class="time-box hours bg-white/5 border border-white/10 rounded-xl p-4 w-20 text-center transform transition-all hover:scale-105">
+                        <div class="text-[clamp(2rem,8vw,3.5rem)] font-bold text-light" id="hours">00</div>
+                        <div class="text-xs uppercase text-light/60 mt-1">小时</div>
+                    </div>
+                    <div class="time-separator flex items-center">
+                        <div class="w-2 h-2 bg-primary rounded-full"></div>
+                        <div class="w-2 h-2 bg-primary rounded-full mt-2"></div>
+                    </div>
+                    <div class="time-box minutes bg-white/5 border border-white/10 rounded-xl p-4 w-20 text-center transform transition-all hover:scale-105">
+                        <div class="text-[clamp(2rem,8vw,3.5rem)] font-bold text-light" id="minutes">00</div>
+                        <div class="text-xs uppercase text-light/60 mt-1">分钟</div>
+                    </div>
+                    <div class="time-separator flex items-center">
+                        <div class="w-2 h-2 bg-primary rounded-full"></div>
+                        <div class="w-2 h-2 bg-primary rounded-full mt-2"></div>
+                    </div>
+                    <div class="time-box seconds bg-white/5 border border-white/10 rounded-xl p-4 w-20 text-center transform transition-all hover:scale-105">
+                        <div class="text-[clamp(2rem,8vw,3.5rem)] font-bold text-light" id="seconds">00</div>
+                        <div class="text-xs uppercase text-light/60 mt-1">秒钟</div>
+                    </div>
+                </div>
+                
+                <!-- 下班时间提示 -->
+                <div class="text-center">
+                    <p class="text-light/80 mb-2">今天下班时间：</p>
+                    <p class="text-xl font-semibold text-primary">18:00:00</p>
+                </div>
+                
+                <!-- 状态提示 -->
+                <div id="status" class="mt-6 px-4 py-3 rounded-lg bg-primary/10 border border-primary/20 text-primary text-center hidden"></div>
+                
+                <!-- 激励语 -->
+                <div class="mt-8 text-center">
+                    <p id="motivation" class="text-light/70 italic">"工作是为了生活，不是生活为了工作"</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 底部信息 -->
+        <div class="text-center mt-6 text-light/40 text-sm">
+            <p>© 2025 刘清专属倒计时</p>
+        </div>
+    </div>
+
+    <script>
+        // 下班时间设置（每天18:00:00）
+        function getTargetTime() {
+            const now = new Date();
+            const target = new Date(now);
+            target.setHours(18, 0, 0, 0);
+            
+            // 如果当前时间已经过了18点，设置为明天的18点
+            if (now > target) {
+                target.setDate(target.getDate() + 1);
+            }
+            
+            return target;
+        }
+        
+        // 更新倒计时
+        function updateCountdown() {
+            const now = new Date();
+            const target = getTargetTime();
+            const diff = target - now;
+            
+            // 如果倒计时结束（比如页面加载时已经过了下班时间）
+            if (diff <= 0) {
+                document.getElementById('hours').textContent = '00';
+                document.getElementById('minutes').textContent = '00';
+                document.getElementById('seconds').textContent = '00';
+                
+                // 显示下班提示
+                document.getElementById('status').classList.remove('hidden');
+                document.getElementById('status').classList.add('bg-green-500/10', 'border-green-500/20', 'text-green-400');
+                document.getElementById('status').innerHTML = '<i class="fa-solid fa-check-circle mr-2"></i> 已经下班啦！赶紧撤吧！';
+                
+                // 更换激励语
+                document.getElementById('motivation').textContent = '"工作是为了生活，下班才是生活的开始"';
+                
+                // 给时间盒子添加庆祝动画
+                const timeBoxes = document.querySelectorAll('.time-box');
+                timeBoxes.forEach(box => {
+                    box.classList.add('bg-green-500/10', 'border-green-500/30');
+                });
+                
+                return;
+            }
+            
+            // 计算时分秒
+            const hours = Math.floor(diff / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+            
+            // 更新DOM
+            document.getElementById('hours').textContent = hours.toString().padStart(2, '0');
+            document.getElementById('minutes').textContent = minutes.toString().padStart(2, '0');
+            document.getElementById('seconds').textContent = seconds.toString().padStart(2, '0');
+            
+            // 快下班时显示提示
+            if (hours === 0 && minutes < 15) {
+                document.getElementById('status').classList.remove('hidden');
+                document.getElementById('status').classList.add('bg-yellow-500/10', 'border-yellow-500/20', 'text-yellow-400');
+                document.getElementById('status').innerHTML = `<i class="fa-solid fa-clock mr-2"></i> 快下班啦！还剩 ${minutes} 分钟${seconds}秒`;
+                
+                // 快下班时更换激励语
+                if (minutes < 5) {
+                    document.getElementById('motivation').textContent = '"坚持就是胜利，曙光就在前方！"';
+                }
+            } else {
+                document.getElementById('status').classList.add('hidden');
+            }
+        }
+        
+        // 页面加载时立即更新一次
+        updateCountdown();
+        
+        // 每秒更新一次
+        setInterval(updateCountdown, 1000);
+        
+        // 添加一些交互效果
+        document.addEventListener('DOMContentLoaded', () => {
+            // 随机更换激励语
+            const motivations = [
+                '"工作是为了生活，不是生活为了工作"',
+                '"效率决定下班时间，专注成就美好未来"',
+                '"每一秒的坚持，都是为了下班后的自由"',
+                '"倒计时的不是时间，是通向自由的阶梯"',
+                '"认真工作，快乐生活，平衡才是王道"',
+                '"现在的努力，是为了下班不加班"',
+                '"工作再忙，也要记得下班的美好"',
+                '"专注工作，享受下班，这才是人生"',
+                '"每一次倒计时，都是对生活的期待"',
+                '"生活不止眼前的代码，还有下班后的远方"',
+            ];
+            
+            setInterval(() => {
+                const randomIndex = Math.floor(Math.random() * motivations.length);
+                document.getElementById('motivation').textContent = motivations[randomIndex];
+            }, 10000); // 每10秒更换一次
+        });
+    </script>
+</body>
+</html>
