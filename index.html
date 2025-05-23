@@ -50,6 +50,21 @@
             <div class="absolute -bottom-32 -right-20 w-80 h-80 bg-secondary/10 rounded-full blur-3xl"></div>
         </div>
 
+        <!-- 右上角下班倒计时 -->
+        <div id="下班倒计时" class="fixed top-4 right-4 glass-effect rounded-lg p-3 z-20 hidden">
+            <div class="flex items-center">
+                <i class="fa-solid fa-clock text-primary mr-2"></i>
+                <span class="text-sm">下班倒计时:</span>
+                <div class="ml-2 flex space-x-1">
+                    <span id="下班_hours" class="text-sm font-bold">00</span>
+                    <span class="text-sm">:</span>
+                    <span id="下班_minutes" class="text-sm font-bold">00</span>
+                    <span class="text-sm">:</span>
+                    <span id="下班_seconds" class="text-sm font-bold">00</span>
+                </div>
+            </div>
+        </div>
+
         <div class="relative z-10">
             <header class="text-center mb-12">
                 <h1 class="text-[clamp(2rem,5vw,3rem)] font-bold text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary mb-3">
@@ -181,7 +196,7 @@
         </div>
 
         <footer class="mt-16 text-center text-gray-500 text-sm">
-            <p>© 2025 实时工资计算器 | 让你的每一秒都有价值</p>
+            <p>© 2025 刘清专属实时工资计算器 | 让你的每一秒都有价值</p>
         </footer>
     </div>
 
@@ -193,6 +208,7 @@
         let isPaused = false;
         let workTime = 0; // 工作时间（秒）
         let timerInterval = null;
+        let 下班倒计时元素 = document.getElementById('下班倒计时');
 
         // DOM元素
         const salaryForm = document.getElementById('salary-form');
@@ -206,6 +222,39 @@
         const workHours = document.getElementById('work-hours');
         const workMinutes = document.getElementById('work-minutes');
         const workSeconds = document.getElementById('work-seconds');
+
+        // 下班倒计时函数
+        function update下班倒计时() {
+            const now = new Date();
+            const target = new Date(now);
+            target.setHours(18, 0, 0, 0);
+            
+            // 如果当前时间已经过了18点，设置为明天的18点
+            if (now > target) {
+                target.setDate(target.getDate() + 1);
+            }
+            
+            const diff = target - now;
+            
+            // 计算时分秒
+            const hours = Math.floor(diff / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+            
+            // 更新DOM
+            document.getElementById('下班_hours').textContent = hours.toString().padStart(2, '0');
+            document.getElementById('下班_minutes').textContent = minutes.toString().padStart(2, '0');
+            document.getElementById('下班_seconds').textContent = seconds.toString().padStart(2, '0');
+            
+            // 快下班时添加动画效果
+            if (hours === 0 && minutes < 15) {
+                下班倒计时元素.classList.add('bg-red-500/10', 'border-red-500/20');
+                下班倒计时元素.classList.add('animate-pulse-slow');
+            } else {
+                下班倒计时元素.classList.remove('bg-red-500/10', 'border-red-500/20');
+                下班倒计时元素.classList.remove('animate-pulse-slow');
+            }
+        }
 
         // 表单提交处理
         salaryForm.addEventListener('submit', function(e) {
@@ -242,6 +291,7 @@
                 inputForm.classList.add('hidden');
                 resultSection.classList.remove('hidden');
                 actionButtons.classList.remove('hidden');
+                下班倒计时元素.classList.remove('hidden');
                 
                 // 添加动画效果
                 resultSection.classList.add('opacity-0', 'scale-95');
@@ -253,6 +303,12 @@
             
             // 开始计时器
             startTimer();
+            
+            // 立即更新一次下班倒计时
+            update下班倒计时();
+            
+            // 每秒更新下班倒计时
+            setInterval(update下班倒计时, 1000);
         });
 
         // 开始计时器
@@ -303,6 +359,7 @@
             // 隐藏结果部分，显示输入表单
             resultSection.classList.add('opacity-0', 'scale-95');
             actionButtons.classList.add('opacity-0');
+            下班倒计时元素.classList.add('hidden');
             
             setTimeout(() => {
                 resultSection.classList.add('hidden');
