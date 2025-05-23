@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>下班倒计时</title>
+    <title>实时工资计算器</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" rel="stylesheet">
     <script>
@@ -11,13 +11,13 @@
             theme: {
                 extend: {
                     colors: {
-                        primary: '#FF6B6B',
-                        secondary: '#4ECDC4',
-                        dark: '#222222',
-                        light: '#F7FFF7',
+                        primary: '#3B82F6',
+                        secondary: '#10B981',
+                        dark: '#1F2937',
+                        light: '#F9FAFB',
                     },
                     fontFamily: {
-                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                        inter: ['Inter', 'sans-serif'],
                     },
                 }
             }
@@ -28,184 +28,306 @@
             .content-auto {
                 content-visibility: auto;
             }
-            .text-shadow {
-                text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            .animate-pulse-slow {
+                animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
             }
             .glass-effect {
-                background: rgba(255, 255, 255, 0.1);
+                background: rgba(255, 255, 255, 0.05);
                 backdrop-filter: blur(10px);
-                -webkit-backdrop-filter: blur(10px);
+                border: 1px solid rgba(255, 255, 255, 0.1);
             }
-            .pulse-animation {
-                animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-            }
-            @keyframes pulse {
-                0%, 100% {
-                    opacity: 1;
-                }
-                50% {
-                    opacity: 0.7;
-                }
+            .input-focus {
+                @apply focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all duration-300;
             }
         }
     </style>
 </head>
-<body class="bg-gradient-to-br from-dark to-gray-800 min-h-screen flex items-center justify-center p-4">
-    <div class="relative w-full max-w-md">
+<body class="bg-gradient-to-br from-dark to-gray-900 min-h-screen font-inter text-light">
+    <div class="container mx-auto px-4 py-8 max-w-4xl">
         <!-- 装饰元素 -->
-        <div class="absolute -top-10 -right-10 w-40 h-40 bg-primary/20 rounded-full blur-3xl"></div>
-        <div class="absolute -bottom-10 -left-10 w-40 h-40 bg-secondary/20 rounded-full blur-3xl"></div>
-        
-        <div class="glass-effect rounded-2xl p-8 border border-white/10 shadow-xl relative z-10">
-            <div class="text-center mb-8">
-                <h1 class="text-[clamp(2rem,5vw,3rem)] font-bold text-light mb-2 text-shadow">
-                    <i class="fa-solid fa-clock text-primary mr-2"></i>下班倒计时
+        <div class="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
+            <div class="absolute -top-20 -left-20 w-60 h-60 bg-primary/20 rounded-full blur-3xl"></div>
+            <div class="absolute -bottom-32 -right-20 w-80 h-80 bg-secondary/10 rounded-full blur-3xl"></div>
+        </div>
+
+        <div class="relative z-10">
+            <header class="text-center mb-12">
+                <h1 class="text-[clamp(2rem,5vw,3rem)] font-bold text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary mb-3">
+                    实时工资计算器
                 </h1>
-                <p class="text-light/70 text-lg">还剩多久可以逃离办公室？</p>
+                <p class="text-gray-400 text-lg max-w-2xl mx-auto">
+                    精确计算你的每一秒价值，让时间看得见
+                </p>
+            </header>
+
+            <!-- 输入表单 -->
+            <div id="input-form" class="glass-effect rounded-2xl p-8 mb-8 transition-all duration-500 transform hover:shadow-lg">
+                <h2 class="text-2xl font-semibold mb-6 text-center">设置你的工资信息</h2>
+                
+                <form id="salary-form" class="space-y-6">
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="monthly-salary" class="block text-sm font-medium text-gray-300 mb-2">月薪 (元)</label>
+                            <div class="relative">
+                                <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">¥</span>
+                                <input type="number" id="monthly-salary" placeholder="输入你的月薪" 
+                                    class="w-full bg-gray-800/50 border border-gray-700 rounded-lg py-3 pl-10 pr-4 text-light placeholder-gray-500 input-focus">
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label for="daily-hours" class="block text-sm font-medium text-gray-300 mb-2">每日工作小时</label>
+                            <div class="relative">
+                                <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+                                    <i class="fa-solid fa-clock"></i>
+                                </span>
+                                <input type="number" id="daily-hours" placeholder="输入每日工作小时" 
+                                    class="w-full bg-gray-800/50 border border-gray-700 rounded-lg py-3 pl-10 pr-4 text-light placeholder-gray-500 input-focus">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="text-center">
+                        <button type="submit" id="calculate-btn" 
+                            class="px-8 py-3 bg-gradient-to-r from-primary to-secondary rounded-lg font-medium hover:shadow-lg hover:shadow-primary/20 transition-all duration-300 transform hover:-translate-y-1">
+                            <i class="fa-solid fa-calculator mr-2"></i>开始计算
+                        </button>
+                    </div>
+                </form>
             </div>
-            
-            <div class="flex flex-col items-center">
-                <!-- 倒计时显示 -->
-                <div class="flex gap-4 mb-8">
-                    <div class="time-box hours bg-white/5 border border-white/10 rounded-xl p-4 w-20 text-center transform transition-all hover:scale-105">
-                        <div class="text-[clamp(2rem,8vw,3.5rem)] font-bold text-light" id="hours">00</div>
-                        <div class="text-xs uppercase text-light/60 mt-1">小时</div>
+
+            <!-- 计算结果 -->
+            <div id="result-section" class="glass-effect rounded-2xl p-8 mb-8 hidden transition-all duration-500 transform hover:shadow-lg">
+                <div class="flex flex-col md:flex-row items-center justify-between mb-8">
+                    <div class="mb-6 md:mb-0">
+                        <h2 class="text-2xl font-semibold mb-2">实时工资统计</h2>
+                        <p class="text-gray-400">根据你的输入，实时计算你的收入</p>
                     </div>
-                    <div class="time-separator flex items-center">
-                        <div class="w-2 h-2 bg-primary rounded-full"></div>
-                        <div class="w-2 h-2 bg-primary rounded-full mt-2"></div>
-                    </div>
-                    <div class="time-box minutes bg-white/5 border border-white/10 rounded-xl p-4 w-20 text-center transform transition-all hover:scale-105">
-                        <div class="text-[clamp(2rem,8vw,3.5rem)] font-bold text-light" id="minutes">00</div>
-                        <div class="text-xs uppercase text-light/60 mt-1">分钟</div>
-                    </div>
-                    <div class="time-separator flex items-center">
-                        <div class="w-2 h-2 bg-primary rounded-full"></div>
-                        <div class="w-2 h-2 bg-primary rounded-full mt-2"></div>
-                    </div>
-                    <div class="time-box seconds bg-white/5 border border-white/10 rounded-xl p-4 w-20 text-center transform transition-all hover:scale-105">
-                        <div class="text-[clamp(2rem,8vw,3.5rem)] font-bold text-light" id="seconds">00</div>
-                        <div class="text-xs uppercase text-light/60 mt-1">秒钟</div>
+                    <div class="flex items-center space-x-4">
+                        <div class="text-center">
+                            <p class="text-xs text-gray-400 mb-1">时薪</p>
+                            <p id="hourly-rate" class="text-xl font-bold text-primary">¥0.00</p>
+                        </div>
+                        <div class="text-center">
+                            <p class="text-xs text-gray-400 mb-1">日薪</p>
+                            <p id="daily-rate" class="text-xl font-bold text-primary">¥0.00</p>
+                        </div>
+                        <div class="text-center">
+                            <p class="text-xs text-gray-400 mb-1">月薪</p>
+                            <p id="monthly-rate" class="text-xl font-bold text-primary">¥0.00</p>
+                        </div>
                     </div>
                 </div>
-                
-                <!-- 下班时间提示 -->
-                <div class="text-center">
-                    <p class="text-light/80 mb-2">今天下班时间：</p>
-                    <p class="text-xl font-semibold text-primary">18:00:00</p>
+
+                <!-- 计时器 -->
+                <div class="bg-gray-800/30 rounded-xl p-6 mb-8">
+                    <div class="flex items-center justify-center mb-6">
+                        <div class="text-center">
+                            <p class="text-sm text-gray-400 mb-1">工作时间</p>
+                            <div class="flex items-center justify-center space-x-2">
+                                <span id="work-hours" class="text-4xl font-bold">00</span>
+                                <span class="text-3xl">:</span>
+                                <span id="work-minutes" class="text-4xl font-bold">00</span>
+                                <span class="text-3xl">:</span>
+                                <span id="work-seconds" class="text-4xl font-bold">00</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center justify-center">
+                        <div class="text-center">
+                            <p class="text-sm text-gray-400 mb-1">已赚取</p>
+                            <div class="flex items-center justify-center">
+                                <span class="text-5xl font-bold text-secondary" id="earned-amount">¥0.00</span>
+                                <span id="earning-now" class="ml-2 text-sm text-green-400 hidden">
+                                    <i class="fa-solid fa-arrow-up-right animate-pulse-slow"></i>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                
-                <!-- 状态提示 -->
-                <div id="status" class="mt-6 px-4 py-3 rounded-lg bg-primary/10 border border-primary/20 text-primary text-center hidden"></div>
-                
-                <!-- 激励语 -->
-                <div class="mt-8 text-center">
-                    <p id="motivation" class="text-light/70 italic">"工作是为了生活，不是生活为了工作"</p>
+
+                <!-- 工资明细 -->
+                <div class="bg-gray-800/30 rounded-xl p-6">
+                    <h3 class="text-xl font-semibold mb-4">工资明细</h3>
+                    <div class="space-y-4">
+                        <div class="flex justify-between items-center pb-2 border-b border-gray-700">
+                            <span class="text-gray-400">每秒收入</span>
+                            <span id="per-second" class="font-medium">¥0.00</span>
+                        </div>
+                        <div class="flex justify-between items-center pb-2 border-b border-gray-700">
+                            <span class="text-gray-400">每分钟收入</span>
+                            <span id="per-minute" class="font-medium">¥0.00</span>
+                        </div>
+                        <div class="flex justify-between items-center pb-2 border-b border-gray-700">
+                            <span class="text-gray-400">每小时收入</span>
+                            <span id="per-hour" class="font-medium">¥0.00</span>
+                        </div>
+                    </div>
                 </div>
+            </div>
+
+            <!-- 操作按钮 -->
+            <div id="action-buttons" class="flex justify-center space-x-4 hidden">
+                <button id="reset-btn" 
+                    class="px-6 py-3 bg-gray-700 hover:bg-gray-600 rounded-lg font-medium transition-all duration-300">
+                    <i class="fa-solid fa-refresh mr-2"></i>重置
+                </button>
+                <button id="pause-btn" 
+                    class="px-6 py-3 bg-yellow-600 hover:bg-yellow-500 rounded-lg font-medium transition-all duration-300">
+                    <i class="fa-solid fa-pause mr-2"></i>暂停
+                </button>
             </div>
         </div>
-        
-        <!-- 底部信息 -->
-        <div class="text-center mt-6 text-light/40 text-sm">
-            <p>© 2025 刘清专属倒计时</p>
-        </div>
+
+        <footer class="mt-16 text-center text-gray-500 text-sm">
+            <p>© 2025 实时工资计算器 | 让你的每一秒都有价值</p>
+        </footer>
     </div>
 
     <script>
-        // 下班时间设置（每天18:00:00）
-        function getTargetTime() {
-            const now = new Date();
-            const target = new Date(now);
-            target.setHours(18, 0, 0, 0);
+        // 全局变量
+        let monthlySalary = 0;
+        let dailyHours = 0;
+        let salaryPerSecond = 0;
+        let isPaused = false;
+        let workTime = 0; // 工作时间（秒）
+        let timerInterval = null;
+
+        // DOM元素
+        const salaryForm = document.getElementById('salary-form');
+        const inputForm = document.getElementById('input-form');
+        const resultSection = document.getElementById('result-section');
+        const actionButtons = document.getElementById('action-buttons');
+        const resetBtn = document.getElementById('reset-btn');
+        const pauseBtn = document.getElementById('pause-btn');
+        const earnedAmount = document.getElementById('earned-amount');
+        const earningNow = document.getElementById('earning-now');
+        const workHours = document.getElementById('work-hours');
+        const workMinutes = document.getElementById('work-minutes');
+        const workSeconds = document.getElementById('work-seconds');
+
+        // 表单提交处理
+        salaryForm.addEventListener('submit', function(e) {
+            e.preventDefault();
             
-            // 如果当前时间已经过了18点，设置为明天的18点
-            if (now > target) {
-                target.setDate(target.getDate() + 1);
-            }
+            // 获取输入值
+            monthlySalary = parseFloat(document.getElementById('monthly-salary').value);
+            dailyHours = parseFloat(document.getElementById('daily-hours').value);
             
-            return target;
-        }
-        
-        // 更新倒计时
-        function updateCountdown() {
-            const now = new Date();
-            const target = getTargetTime();
-            const diff = target - now;
-            
-            // 如果倒计时结束（比如页面加载时已经过了下班时间）
-            if (diff <= 0) {
-                document.getElementById('hours').textContent = '00';
-                document.getElementById('minutes').textContent = '00';
-                document.getElementById('seconds').textContent = '00';
-                
-                // 显示下班提示
-                document.getElementById('status').classList.remove('hidden');
-                document.getElementById('status').classList.add('bg-green-500/10', 'border-green-500/20', 'text-green-400');
-                document.getElementById('status').innerHTML = '<i class="fa-solid fa-check-circle mr-2"></i> 已经下班啦！赶紧撤吧！';
-                
-                // 更换激励语
-                document.getElementById('motivation').textContent = '"工作是为了生活，下班才是生活的开始"';
-                
-                // 给时间盒子添加庆祝动画
-                const timeBoxes = document.querySelectorAll('.time-box');
-                timeBoxes.forEach(box => {
-                    box.classList.add('bg-green-500/10', 'border-green-500/30');
-                });
-                
+            // 验证输入
+            if (isNaN(monthlySalary) || monthlySalary <= 0 || isNaN(dailyHours) || dailyHours <= 0) {
+                alert('请输入有效的月薪和每日工作小时！');
                 return;
             }
             
-            // 计算时分秒
-            const hours = Math.floor(diff / (1000 * 60 * 60));
-            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-            const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+            // 计算每小时、每分钟、每秒的工资
+            const monthlyWorkingDays = 21.75; // 法定每月工作日
+            const hourlyRate = monthlySalary / (monthlyWorkingDays * dailyHours);
+            const dailyRate = hourlyRate * dailyHours;
+            const salaryPerMinute = hourlyRate / 60;
+            salaryPerSecond = salaryPerMinute / 60;
             
-            // 更新DOM
-            document.getElementById('hours').textContent = hours.toString().padStart(2, '0');
-            document.getElementById('minutes').textContent = minutes.toString().padStart(2, '0');
-            document.getElementById('seconds').textContent = seconds.toString().padStart(2, '0');
+            // 更新UI
+            document.getElementById('hourly-rate').textContent = `¥${hourlyRate.toFixed(2)}`;
+            document.getElementById('daily-rate').textContent = `¥${dailyRate.toFixed(2)}`;
+            document.getElementById('monthly-rate').textContent = `¥${monthlySalary.toFixed(2)}`;
+            document.getElementById('per-second').textContent = `¥${salaryPerSecond.toFixed(4)}`;
+            document.getElementById('per-minute').textContent = `¥${salaryPerMinute.toFixed(2)}`;
+            document.getElementById('per-hour').textContent = `¥${hourlyRate.toFixed(2)}`;
             
-            // 快下班时显示提示
-            if (hours === 0 && minutes < 15) {
-                document.getElementById('status').classList.remove('hidden');
-                document.getElementById('status').classList.add('bg-yellow-500/10', 'border-yellow-500/20', 'text-yellow-400');
-                document.getElementById('status').innerHTML = `<i class="fa-solid fa-clock mr-2"></i> 快下班啦！还剩 ${minutes} 分钟${seconds}秒`;
+            // 显示结果部分
+            inputForm.classList.add('opacity-0', 'scale-95');
+            setTimeout(() => {
+                inputForm.classList.add('hidden');
+                resultSection.classList.remove('hidden');
+                actionButtons.classList.remove('hidden');
                 
-                // 快下班时更换激励语
-                if (minutes < 5) {
-                    document.getElementById('motivation').textContent = '"坚持就是胜利，曙光就在前方！"';
-                }
-            } else {
-                document.getElementById('status').classList.add('hidden');
-            }
-        }
-        
-        // 页面加载时立即更新一次
-        updateCountdown();
-        
-        // 每秒更新一次
-        setInterval(updateCountdown, 1000);
-        
-        // 添加一些交互效果
-        document.addEventListener('DOMContentLoaded', () => {
-            // 随机更换激励语
-            const motivations = [
-                '"工作是为了生活，不是生活为了工作"',
-                '"效率决定下班时间，专注成就美好未来"',
-                '"每一秒的坚持，都是为了下班后的自由"',
-                '"倒计时的不是时间，是通向自由的阶梯"',
-                '"认真工作，快乐生活，平衡才是王道"',
-                '"现在的努力，是为了下班不加班"',
-                '"工作再忙，也要记得下班的美好"',
-                '"专注工作，享受下班，这才是人生"',
-                '"每一次倒计时，都是对生活的期待"',
-                '"生活不止眼前的代码，还有下班后的远方"',
-            ];
+                // 添加动画效果
+                resultSection.classList.add('opacity-0', 'scale-95');
+                setTimeout(() => {
+                    resultSection.classList.remove('opacity-0', 'scale-95');
+                    resultSection.classList.add('opacity-100', 'scale-100');
+                }, 50);
+            }, 300);
             
-            setInterval(() => {
-                const randomIndex = Math.floor(Math.random() * motivations.length);
-                document.getElementById('motivation').textContent = motivations[randomIndex];
-            }, 10000); // 每10秒更换一次
+            // 开始计时器
+            startTimer();
+        });
+
+        // 开始计时器
+        function startTimer() {
+            if (timerInterval) clearInterval(timerInterval);
+            
+            timerInterval = setInterval(() => {
+                if (!isPaused) {
+                    workTime++;
+                    
+                    // 更新工作时间显示
+                    const hours = Math.floor(workTime / 3600);
+                    const minutes = Math.floor((workTime % 3600) / 60);
+                    const seconds = workTime % 60;
+                    
+                    workHours.textContent = hours.toString().padStart(2, '0');
+                    workMinutes.textContent = minutes.toString().padStart(2, '0');
+                    workSeconds.textContent = seconds.toString().padStart(2, '0');
+                    
+                    // 更新已赚取金额
+                    const earned = workTime * salaryPerSecond;
+                    earnedAmount.textContent = `¥${earned.toFixed(2)}`;
+                    
+                    // 显示正在赚取动画
+                    earningNow.classList.remove('hidden');
+                    setTimeout(() => {
+                        earningNow.classList.add('hidden');
+                    }, 800);
+                }
+            }, 1000);
+        }
+
+        // 重置按钮
+        resetBtn.addEventListener('click', function() {
+            clearInterval(timerInterval);
+            workTime = 0;
+            isPaused = false;
+            
+            // 重置UI
+            earnedAmount.textContent = '¥0.00';
+            workHours.textContent = '00';
+            workMinutes.textContent = '00';
+            workSeconds.textContent = '00';
+            pauseBtn.innerHTML = '<i class="fa-solid fa-pause mr-2"></i>暂停';
+            pauseBtn.classList.remove('bg-green-600');
+            pauseBtn.classList.add('bg-yellow-600');
+            
+            // 隐藏结果部分，显示输入表单
+            resultSection.classList.add('opacity-0', 'scale-95');
+            actionButtons.classList.add('opacity-0');
+            
+            setTimeout(() => {
+                resultSection.classList.add('hidden');
+                actionButtons.classList.add('hidden');
+                inputForm.classList.remove('hidden');
+                
+                // 添加动画效果
+                inputForm.classList.remove('opacity-0', 'scale-95');
+                inputForm.classList.add('opacity-100', 'scale-100');
+            }, 300);
+        });
+
+        // 暂停/继续按钮
+        pauseBtn.addEventListener('click', function() {
+            isPaused = !isPaused;
+            
+            if (isPaused) {
+                pauseBtn.innerHTML = '<i class="fa-solid fa-play mr-2"></i>继续';
+                pauseBtn.classList.remove('bg-yellow-600');
+                pauseBtn.classList.add('bg-green-600');
+            } else {
+                pauseBtn.innerHTML = '<i class="fa-solid fa-pause mr-2"></i>暂停';
+                pauseBtn.classList.remove('bg-green-600');
+                pauseBtn.classList.add('bg-yellow-600');
+            }
         });
     </script>
 </body>
